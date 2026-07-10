@@ -44,15 +44,22 @@ export default function CoPilotPage() {
     setIsTyping(true);
 
     try {
-      // PERBAIKAN: Mengarahkan fetch ke endpoint yang benar yaitu /api/edu
+      // Formating data agar sesuai dengan API Gemini
+      const formattedHistory = updatedMessages.map(msg => ({
+        role: msg.sender === 'user' ? 'user' : 'model',
+        parts: [{ text: msg.text }]
+      }));
+
       const response = await fetch('/api/edu', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ pesan: textToSend }), 
+        body: JSON.stringify({ history: formattedHistory }), 
       });
 
-      const data = await response.json();
+      if (!response.ok) throw new Error('Network response was not ok');
 
+      const data = await response.json();
+      
       const aiMessage: Message = {
         id: (Date.now() + 1).toString(),
         text: data.reply || 'Ada sedikit gangguan sinyal, Wan. Coba ketik lagi ya.',
@@ -63,6 +70,14 @@ export default function CoPilotPage() {
       setMessages((prev) => [...prev, aiMessage]);
     } catch (error) {
       console.error("Error saat fetch ke API:", error);
+      // Menambah pesan error agar terlihat di chat
+      const errorMessage: Message = {
+        id: Date.now().toString(),
+        text: "Maaf, sepertinya koneksi ke server sedang bermasalah. Coba lagi nanti ya.",
+        sender: 'ai',
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      };
+      setMessages((prev) => [...prev, errorMessage]);
     } finally {
       setIsTyping(false);
     }
@@ -75,7 +90,6 @@ export default function CoPilotPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#0B132B] via-[#1C2541] to-[#3A506B] text-white font-sans flex flex-col justify-between">
-      {/* HEADER */}
       <div className="border-b border-white/10 backdrop-blur-md bg-[#0B132B]/60 px-6 py-4 flex items-center justify-between sticky top-0 z-10">
         <div className="flex items-center gap-3">
           <div className="bg-cyan-500/20 text-cyan-400 p-2 rounded-lg border border-cyan-500/30 w-10 h-10 flex items-center justify-center font-bold">🤖</div>
@@ -87,7 +101,6 @@ export default function CoPilotPage() {
         <a href="/" className="text-xs text-slate-400 hover:text-cyan-400 border border-white/10 px-3 py-1.5 rounded-md backdrop-blur-sm transition-all">← Kembali ke Dashboard</a>
       </div>
 
-      {/* AREA CHAT */}
       <div className="flex-1 overflow-y-auto p-6 space-y-4 max-w-3xl w-full mx-auto">
         <div className="backdrop-blur-lg bg-white/[0.03] border border-white/10 rounded-2xl p-4 min-h-[55vh] flex flex-col shadow-2xl justify-between">
           <div className="space-y-4 overflow-y-auto max-h-[50vh] pr-2">
@@ -114,7 +127,6 @@ export default function CoPilotPage() {
         </div>
       </div>
 
-      {/* INPUT & QUICK TEMPLATES */}
       <div className="p-6 max-w-3xl w-full mx-auto sticky bottom-0 bg-gradient-to-t from-[#3A506B] via-[#3A506B]/90 to-transparent space-y-3">
         <div className="flex flex-wrap gap-2 justify-center">
           {quickTemplates.map((template, idx) => (
