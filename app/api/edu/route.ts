@@ -3,26 +3,21 @@ import { NextResponse } from 'next/server';
 
 export async function POST(req: Request) {
   try {
-    const body = await req.json();
-    console.log("DEBUG: Data diterima backend:", body); // Cek ini di Vercel Logs!
-
     const apiKey = process.env.GOOGLE_GENAI_API_KEY;
     if (!apiKey) {
-      console.error("DEBUG: API Key kosong!");
-      return NextResponse.json({ reply: "API Key belum diset di Vercel." }, { status: 500 });
+      throw new Error("API_KEY_NOT_FOUND");
     }
 
     const genAI = new GoogleGenerativeAI(apiKey);
-    const model = genAI.getGenerativeModel({ model: 'gemini-pro' });
+    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' }); // Gunakan versi flash yang lebih stabil
 
-    // Ambil teks dari struktur yang dikirim frontend
-    const prompt = body.history[0].parts[0].text;
+    const body = await req.json();
+    const prompt = body.history[body.history.length - 1].parts[0].text;
+
     const result = await model.generateContent(prompt);
     const response = await result.response;
-    
     return NextResponse.json({ reply: response.text() });
   } catch (error: any) {
-    console.error("DEBUG: Error Backend:", error);
-    return NextResponse.json({ reply: "Error backend: " + error.message }, { status: 500 });
+    return NextResponse.json({ reply: "Error: " + error.message }, { status: 500 });
   }
 }
