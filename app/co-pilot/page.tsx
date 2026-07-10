@@ -28,7 +28,7 @@ export default function CoPilotPage() {
     "☕ Cara ngatasin burnout belajar",
   ];
 
-  const sendMessageToAPI = async (textToSend: string) => {
+ const sendMessageToAPI = async (textToSend: string) => {
     if (!textToSend.trim()) return;
 
     const userMessage: Message = {
@@ -44,19 +44,20 @@ export default function CoPilotPage() {
     setIsTyping(true);
 
     try {
-      // Formating data agar sesuai dengan API Gemini
-      const formattedHistory = updatedMessages.map(msg => ({
-        role: msg.sender === 'user' ? 'user' : 'model',
-        parts: [{ text: msg.text }]
-      }));
-
+      // Mengirim pesan terakhir saja untuk menghindari kompleksitas history yang panjang
+      // sekaligus menghindari error 400 karena format yang tidak sesuai di backend
       const response = await fetch('/api/edu', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ history: formattedHistory }), 
+        body: JSON.stringify({ 
+          history: [{ 
+            role: 'user', 
+            parts: [{ text: textToSend }] 
+          }] 
+        }), 
       });
 
-      if (!response.ok) throw new Error('Network response was not ok');
+      if (!response.ok) throw new Error('Gagal menghubungi server');
 
       const data = await response.json();
       
@@ -70,10 +71,9 @@ export default function CoPilotPage() {
       setMessages((prev) => [...prev, aiMessage]);
     } catch (error) {
       console.error("Error saat fetch ke API:", error);
-      // Menambah pesan error agar terlihat di chat
       const errorMessage: Message = {
         id: Date.now().toString(),
-        text: "Maaf, sepertinya koneksi ke server sedang bermasalah. Coba lagi nanti ya.",
+        text: "Maaf, sepertinya koneksi ke server sedang bermasalah. Pastikan API Key di Vercel sudah benar.",
         sender: 'ai',
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       };

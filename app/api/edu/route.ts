@@ -1,29 +1,27 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { NextResponse } from 'next/server';
 
+const genAI = new GoogleGenerativeAI(process.env.GOOGLE_GENAI_API_KEY || '');
+
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { history } = body;
+    // Kita ambil history dari body
+    const history = body.history;
 
-    if (!process.env.GOOGLE_GENAI_API_KEY) {
-      throw new Error("API Key tidak ditemukan di environment variables!");
+    if (!history || !Array.isArray(history)) {
+      return NextResponse.json({ reply: "Format data salah." }, { status: 400 });
     }
 
-    const genAI = new GoogleGenerativeAI(process.env.GOOGLE_GENAI_API_KEY);
     const model = genAI.getGenerativeModel({ model: 'gemini-pro' });
-
-    // Mengambil pesan terakhir dari history yang diformat oleh frontend
+    
+    // Ambil pesan terakhir
     const lastMessage = history[history.length - 1].parts[0].text;
 
     const result = await model.generateContent(lastMessage);
     const response = await result.response;
-    const text = response.text();
-
-    return NextResponse.json({ reply: text });
-  } catch (error: any) {
-    console.error("DEBUG ERROR API:", error.message);
-    // Mengembalikan error agar kita bisa baca di console log Vercel
-    return NextResponse.json({ reply: `Error: ${error.message}` }, { status: 500 });
+    return NextResponse.json({ reply: response.text() });
+  } catch (error) {
+    return NextResponse.json({ reply: "Gagal memproses AI." }, { status: 500 });
   }
 }
