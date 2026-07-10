@@ -2,11 +2,11 @@
   "name": "rigel-itda-web",
   "version": "0.1.0",
   "private": true,
-  "scripts": {
+ "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "npm install @google/generative-ai && next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "next lint"
   },
   "dependencies": {
     "@google/genai": "^2.10.0",
