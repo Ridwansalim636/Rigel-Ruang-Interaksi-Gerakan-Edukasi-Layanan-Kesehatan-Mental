@@ -6,8 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint",
-    "postinstall": "npm install typescript"
+    "lint": "next lint"
+    
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",
@@ -18,9 +18,9 @@
     "react-markdown": "^10.1.0"
   },
   "devDependencies": {
-    "@types/node": "^26.1.1",
-    "@types/react": "^19.2.17",
-    "@types/react-dom": "^19.2.3",
-    "typescript": "^7.0.2"
-  }
+  "@types/node": "^26.1.1",
+  "@types/react": "^19.2.17",
+  "@types/react-dom": "^19.2.3",
+  "typescript": "^5.0.0"
 }
+  }
